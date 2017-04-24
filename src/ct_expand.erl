@@ -206,7 +206,9 @@ abstract([C|T]) when is_integer(C), 0 =< C, C < 256 ->
 abstract([H|T]) ->
     {cons,0,abstract(H),abstract(T)};
 abstract(Tuple) when is_tuple(Tuple) ->
-    {tuple,0,abstract_list(tuple_to_list(Tuple))}.
+    {tuple,0,abstract_list(tuple_to_list(Tuple))};
+abstract(Map) when is_map(Map)->
+    {map,0,abstract_map(Map)}.
 
 abstract_string([C|T], String) when is_integer(C), 0 =< C, C < 256 ->
     abstract_string(T, [C|String]);
@@ -232,3 +234,7 @@ abstract_byte(Bits, Line) ->
     <<Val:Sz>> = Bits,
     {bin_element, Line, {integer, Line, Val}, {integer, Line, Sz}, default}.
 
+abstract_map(Map) ->
+    maps:fold(fun(K, V, Acc) ->
+                      [{map_field_assoc,0, abstract(K), abstract(V)} | Acc]
+              end, [], Map).
